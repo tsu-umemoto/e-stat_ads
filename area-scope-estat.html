@@ -1,0 +1,1549 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>戸建て・アパマン住宅数分析ツール from e-Stat</title>
+<style>
+/* ── e-Stat ライクデザイン ─────────────────────────── */
+:root {
+  --navy:  #003f8a;
+  --navy2: #00337a;
+  --blue:  #0068b6;
+  --blue2: #0057a0;
+  --sky:   #e8f0fb;
+  --sky2:  #d0e2f5;
+  --white: #ffffff;
+  --gray0: #f5f7fa;
+  --gray1: #eaecf0;
+  --gray2: #d0d4da;
+  --gray3: #9aa0ab;
+  --gray4: #5c6370;
+  --text:  #1a1f2b;
+  --text2: #3d4450;
+  --text3: #636b78;
+  --c-det: #d94f00;   /* 一戸建て   オレンジ赤 */
+  --c-ren: #0068b6;   /* 共同(賃貸) 青 */
+  --c-cnd: #00863e;   /* 共同(持家) 緑 */
+  --c-oth: #8b6400;   /* 長屋・他   茶 */
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html { font-size:14px; }
+body {
+  background: var(--gray0);
+  color: var(--text);
+  font-family: "Meiryo","メイリオ","Hiragino Sans","ヒラギノ角ゴ Pro","Yu Gothic","游ゴシック",sans-serif;
+  line-height: 1.7;
+}
+
+/* ── ヘッダー */
+.site-header {
+  background: var(--navy);
+  color: #fff;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  height: 52px;
+  gap: 16px;
+}
+.site-logo {
+  font-size: 11px;
+  font-weight: bold;
+  letter-spacing: .04em;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+.site-logo-badge {
+  background: #fff;
+  color: var(--navy);
+  font-size: 10px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 3px;
+  letter-spacing: .06em;
+}
+.site-header-sep { color: rgba(255,255,255,.3); font-size: 16px; }
+.site-header-title { font-size: 13px; color: rgba(255,255,255,.9); }
+
+/* ── パンくず */
+.breadcrumb {
+  background: var(--sky);
+  border-bottom: 1px solid var(--sky2);
+  padding: 6px 24px;
+  font-size: 11px;
+  color: var(--text3);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.breadcrumb a { color: var(--blue); text-decoration: none; }
+.breadcrumb a:hover { text-decoration: underline; }
+.bc-sep { color: var(--gray3); }
+
+/* ── タブナビ */
+.tab-nav {
+  background: var(--white);
+  border-bottom: 2px solid var(--navy);
+  padding: 0 24px;
+  display: flex;
+}
+.tab-btn {
+  padding: 12px 24px 10px;
+  font-size: 13px;
+  font-weight: bold;
+  font-family: inherit;
+  border: none;
+  border-top: 3px solid transparent;
+  border-right: 1px solid transparent;
+  border-left: 1px solid transparent;
+  background: transparent;
+  color: var(--text3);
+  cursor: pointer;
+  position: relative;
+  bottom: -2px;
+  transition: all .15s;
+  letter-spacing: .02em;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.tab-btn:hover { color: var(--navy); background: var(--sky); }
+.tab-btn.active {
+  color: var(--navy);
+  background: var(--white);
+  border-top-color: var(--navy);
+  border-right-color: var(--gray2);
+  border-left-color: var(--gray2);
+  border-bottom: 2px solid var(--white);
+}
+.tab-icon { font-size: 16px; line-height: 1; }
+.tab-badge {
+  font-size: 10px;
+  font-weight: normal;
+  background: var(--sky);
+  color: var(--navy);
+  border: 1px solid var(--sky2);
+  padding: 1px 6px;
+  border-radius: 10px;
+}
+.tab-btn.active .tab-badge { background: var(--navy); color: #fff; border-color: var(--navy); }
+.tab-pane { display: none; }
+.tab-pane.active { display: block; }
+
+/* ── メインレイアウト */
+.main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px 24px 60px;
+}
+
+/* ── ページタイトル */
+.page-title-area {
+  border-left: 4px solid var(--navy);
+  padding: 4px 0 4px 12px;
+  margin-bottom: 18px;
+}
+.page-title {
+  font-size: 18px;
+  font-weight: bold;
+  color: var(--navy);
+  line-height: 1.4;
+}
+.page-subtitle {
+  font-size: 12px;
+  color: var(--text3);
+  margin-top: 2px;
+}
+
+/* ── 条件パネル */
+.cond-panel {
+  background: var(--white);
+  border: 1px solid var(--gray2);
+  border-top: 3px solid var(--navy);
+  border-radius: 0 0 4px 4px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+}
+.cond-title {
+  font-size: 12px;
+  font-weight: bold;
+  color: var(--navy);
+  background: var(--sky);
+  border: 1px solid var(--sky2);
+  padding: 4px 10px;
+  display: inline-block;
+  margin-bottom: 12px;
+  letter-spacing: .04em;
+}
+.cond-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.cond-label {
+  font-size: 12px;
+  font-weight: bold;
+  color: var(--text2);
+  white-space: nowrap;
+}
+.cond-note {
+  font-size: 11px;
+  color: var(--text3);
+  margin-left: auto;
+  line-height: 1.6;
+}
+
+select {
+  border: 1px solid var(--gray2);
+  border-radius: 3px;
+  padding: 5px 28px 5px 10px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--text);
+  background: var(--white) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23666'/%3E%3C/svg%3E") no-repeat right 9px center;
+  appearance: none;
+  cursor: pointer;
+  outline: none;
+  min-width: 200px;
+}
+select:focus { border-color: var(--blue); box-shadow: 0 0 0 2px rgba(0,104,182,.15); }
+
+/* ── 凡例＋フィルター */
+.legend-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.legend-label {
+  font-size: 11px;
+  color: var(--text3);
+  margin-right: 4px;
+  font-weight: bold;
+}
+.cat-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px 4px 8px;
+  border: 1px solid var(--gray2);
+  border-radius: 3px;
+  background: var(--white);
+  cursor: pointer;
+  font-size: 12px;
+  font-family: inherit;
+  color: var(--text2);
+  transition: all .15s;
+  user-select: none;
+}
+.cat-btn:hover { border-color: var(--blue); color: var(--blue); }
+.cat-btn.off {
+  background: var(--gray1);
+  color: var(--gray3);
+  border-color: var(--gray2);
+  text-decoration: line-through;
+}
+.cat-swatch {
+  width: 14px; height: 14px;
+  border-radius: 2px;
+  flex-shrink: 0;
+  transition: opacity .15s;
+}
+.cat-btn.off .cat-swatch { opacity: .3; }
+
+/* ── 集計バー */
+.summary-area {
+  display: grid;
+  grid-template-columns: repeat(4,1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.sum-box {
+  background: var(--white);
+  border: 1px solid var(--gray2);
+  border-radius: 3px;
+  padding: 12px 14px;
+}
+.sum-box-label {
+  font-size: 11px;
+  color: var(--text3);
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--gray1);
+  padding-bottom: 4px;
+}
+.sum-box-val {
+  font-size: 20px;
+  font-weight: bold;
+  line-height: 1.2;
+}
+.sum-box-unit { font-size: 12px; font-weight: normal; color: var(--text3); margin-left: 2px; }
+
+/* ── テーブルコンテナ */
+.table-panel {
+  background: var(--white);
+  border: 1px solid var(--gray2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.table-panel-header {
+  background: var(--navy);
+  color: #fff;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.table-panel-title {
+  font-size: 13px;
+  font-weight: bold;
+  letter-spacing: .04em;
+}
+.sort-area {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+}
+.sort-label { color: rgba(255,255,255,.7); margin-right: 4px; }
+.sort-btn {
+  padding: 3px 10px;
+  border: 1px solid rgba(255,255,255,.3);
+  border-radius: 2px;
+  background: transparent;
+  color: rgba(255,255,255,.8);
+  font-size: 11px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all .15s;
+}
+.sort-btn:hover { background: rgba(255,255,255,.15); color: #fff; }
+.sort-btn.on { background: #fff; color: var(--navy); border-color: #fff; font-weight: bold; }
+
+/* ── グラフ行 */
+.bar-table { padding: 4px 0; }
+.bar-row {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 10px;
+  row-gap: 3px;
+  padding: 7px 14px;
+  border-bottom: 1px solid var(--gray1);
+  transition: background .1s;
+  cursor: pointer;
+}
+.bar-row:last-child { border-bottom: none; }
+.bar-row:hover { background: var(--sky); }
+.bar-row:hover .bar-city { color: var(--blue); text-decoration: underline; }
+
+.bar-city {
+  font-size: 12px;
+  font-weight: bold;
+  color: var(--text2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  grid-row: 1 / 3;
+  grid-column: 1;
+  align-self: center;
+}
+.bar-track {
+  height: 20px;
+  background: var(--gray1);
+  border: 1px solid var(--gray2);
+  border-radius: 2px;
+  overflow: hidden;
+  display: flex;
+  grid-row: 1;
+  grid-column: 2;
+}
+.bar-seg {
+  height: 100%;
+  flex-shrink: 0;
+  transition: width .6s ease;
+}
+
+/* 数値表示エリア — バーの下に表示 */
+.bar-nums {
+  grid-row: 2;
+  grid-column: 2;
+  display: flex;
+  gap: 0;
+  align-items: stretch;
+  font-family: "Courier New", monospace;
+  font-size: 11px;
+  border: 1px solid var(--gray2);
+  border-radius: 2px;
+  overflow: hidden;
+  background: var(--gray0);
+}
+.bar-num-cell {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  flex: 1;
+  border-right: 1px solid var(--gray2);
+  min-width: 0;
+}
+.bar-num-cell:last-child { border-right: none; }
+.bar-num-swatch { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+.bar-num-val { font-size: 11px; font-weight: bold; line-height: 1; white-space: nowrap; }
+.bar-num-pct { font-size: 10px; color: var(--text3); margin-left: 2px; white-space: nowrap; }
+
+/* ── フッター注釈 */
+.data-source {
+  margin-top: 14px;
+  font-size: 11px;
+  color: var(--text3);
+  border-top: 1px solid var(--gray2);
+  padding-top: 10px;
+  line-height: 1.7;
+}
+.data-source strong { color: var(--text2); }
+.data-source a { color: var(--blue); text-decoration: none; }
+.data-source a:hover { text-decoration: underline; }
+
+/* ── 空状態 */
+.empty-state {
+  background: var(--white);
+  border: 1px solid var(--gray2);
+  border-radius: 3px;
+  padding: 60px 40px;
+  text-align: center;
+  color: var(--text3);
+}
+.empty-state p { margin-top: 8px; font-size: 13px; }
+
+/* ── ツールチップ */
+.tip {
+  position: fixed;
+  background: var(--white);
+  border: 1px solid var(--navy);
+  border-top: 3px solid var(--navy);
+  border-radius: 3px;
+  padding: 10px 14px;
+  font-size: 12px;
+  pointer-events: none;
+  z-index: 9999;
+  min-width: 220px;
+  box-shadow: 2px 4px 12px rgba(0,0,0,.15);
+  display: none;
+}
+.tip-city {
+  font-size: 13px;
+  font-weight: bold;
+  color: var(--navy);
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--gray1);
+}
+.tip-row {
+  display: grid;
+  grid-template-columns: 12px 1fr auto auto;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 0;
+}
+.tip-swatch { width:12px; height:12px; border-radius:2px; }
+.tip-label { color: var(--text2); }
+.tip-val { font-weight: bold; text-align: right; font-family: monospace; }
+.tip-pct { color: var(--text3); font-size: 11px; text-align: right; min-width: 36px; font-family: monospace; }
+.tip-total {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--gray1);
+  font-size: 11px;
+  color: var(--text3);
+  display: flex;
+  justify-content: space-between;
+}
+
+/* ── 地図パネル */
+.map-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.5);
+  z-index: 10000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+.map-overlay.open { display: flex; }
+.map-panel {
+  background: var(--white);
+  border-top: 3px solid var(--navy);
+  border-radius: 3px;
+  box-shadow: 0 8px 40px rgba(0,0,0,.35);
+  width: min(1000px, 96vw);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.map-panel-header {
+  background: var(--navy);
+  color: #fff;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-shrink: 0;
+}
+.map-panel-title { font-size: 15px; font-weight: bold; }
+.map-panel-sub { font-size: 11px; color: rgba(255,255,255,.65); margin-top: 2px; }
+.map-close {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,.4);
+  color: #fff;
+  border-radius: 3px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.map-close:hover { background: rgba(255,255,255,.15); }
+.map-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border: 1px solid rgba(255,255,255,.5);
+  border-radius: 3px;
+  color: #fff;
+  background: transparent;
+  font-size: 11px;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all .15s;
+  white-space: nowrap;
+}
+.map-link-btn:hover { background: rgba(255,255,255,.2); }
+
+/* ボディ：左右2カラム */
+.map-body {
+  display: grid;
+  grid-template-columns: 230px 1fr;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* 左：データ詳細 */
+.map-detail {
+  border-right: 1px solid var(--gray2);
+  padding: 16px 14px;
+  overflow-y: auto;
+  background: var(--gray0);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.map-detail-title {
+  font-size: 11px;
+  font-weight: bold;
+  color: var(--navy);
+  background: var(--sky);
+  border: 1px solid var(--sky2);
+  padding: 3px 8px;
+  margin-bottom: 4px;
+  letter-spacing: .04em;
+}
+.map-detail-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 10px;
+  background: var(--white);
+  border: 1px solid var(--gray2);
+  border-radius: 3px;
+}
+.map-detail-swatch { width: 12px; height: 12px; border-radius: 2px; flex-shrink: 0; }
+.map-detail-label { font-size: 11px; color: var(--text3); flex: 1; line-height: 1.3; }
+.map-detail-nums { text-align: right; }
+.map-detail-val { font-size: 13px; font-weight: bold; font-family: monospace; display: block; line-height: 1.2; }
+.map-detail-pct { font-size: 10px; color: var(--text3); font-family: monospace; }
+.map-detail-total {
+  margin-top: 4px;
+  padding: 8px 10px;
+  background: var(--navy);
+  color: #fff;
+  border-radius: 3px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 12px;
+}
+.map-detail-total strong { font-size: 15px; font-family: monospace; }
+.map-detail-note {
+  font-size: 10px;
+  color: var(--text3);
+  line-height: 1.6;
+  margin-top: 4px;
+}
+
+/* 右：地図 */
+.map-leaflet-wrap {
+  position: relative;
+  min-height: 480px;
+}
+.map-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--gray0);
+  gap: 10px;
+  font-size: 13px;
+  color: var(--text3);
+  z-index: 1;
+}
+.map-loading-spinner {
+  width: 32px; height: 32px;
+  border: 3px solid var(--gray2);
+  border-top-color: var(--navy);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+#leafletMap { width: 100%; height: 100%; min-height: 480px; }
+
+/* バー行のクリックはCSS上は bar-row 内で定義済み */
+@media(max-width:720px) {
+  .bar-row { grid-template-columns: 90px 1fr; }
+  .bar-num-cell { padding: 2px 4px; }
+  .bar-num-val { font-size: 10px; }
+  .bar-num-pct { display: none; }
+  .summary-area { grid-template-columns: repeat(2,1fr); }
+}
+</style>
+</head>
+<body>
+
+<!-- サイトヘッダー -->
+<div class="site-header">
+  <span class="site-header-title" style="font-size:16px;font-weight:bold;letter-spacing:.02em">
+    戸建て・アパマン住宅数分析ツール
+  </span>
+  <span class="site-header-sep">|</span>
+  <a class="site-logo" href="https://www.e-stat.go.jp/" target="_blank" rel="noopener">
+    <span class="site-logo-badge">e-Stat</span>
+    from e-Stat
+  </a>
+</div>
+
+<!-- タブナビ -->
+<div class="tab-nav">
+  <button class="tab-btn active" id="tabBtnDet" onclick="switchTab('det')">
+    <span class="tab-icon">🏠</span>
+    戸建て分析
+    <span class="tab-badge">一戸建て・持家</span>
+  </button>
+  <button class="tab-btn" id="tabBtnApt" onclick="switchTab('apt')">
+    <span class="tab-icon">🏢</span>
+    アパート・マンション分析
+    <span class="tab-badge">共同住宅</span>
+  </button>
+</div>
+
+<!-- ─── タブ①：戸建て ─── -->
+<div class="tab-pane active" id="paneDet">
+<div class="main">
+  <div class="page-title-area">
+    <div class="page-title">戸建て住宅 市区町村分析</div>
+    <div class="page-subtitle">一戸建て・長屋建の分布を確認 ／ 外壁塗装・リフォーム・火災保険などの配信エリア最適化に活用</div>
+  </div>
+  <div class="cond-panel">
+    <div class="cond-title">▼ 表示条件</div>
+    <div class="cond-row">
+      <span class="cond-label">都道府県</span>
+      <select id="prefSelDet"></select>
+      <div class="cond-note">対象: 市区及び人口1万5千人以上の町村<br>調査基準日: 令和5年（2023年）10月1日</div>
+    </div>
+  </div>
+  <div class="legend-row">
+    <span class="legend-label">表示切替：</span>
+    <button class="cat-btn" data-tab="det" data-cat="det" onclick="toggleCat('det','det')"><span class="cat-swatch" style="background:var(--c-det)"></span>一戸建て</button>
+    <button class="cat-btn" data-tab="det" data-cat="ren" onclick="toggleCat('det','ren')"><span class="cat-swatch" style="background:var(--c-ren)"></span>共同住宅（賃貸）</button>
+    <button class="cat-btn" data-tab="det" data-cat="cnd" onclick="toggleCat('det','cnd')"><span class="cat-swatch" style="background:var(--c-cnd)"></span>共同住宅（持家）</button>
+    <button class="cat-btn" data-tab="det" data-cat="oth" onclick="toggleCat('det','oth')"><span class="cat-swatch" style="background:var(--c-oth)"></span>長屋・その他</button>
+  </div>
+  <div id="viewDet"><div class="empty-state"><strong>都道府県を選択してください</strong><p>表示条件から都道府県を選択すると、市区町村別の住宅タイプ構成が表示されます。</p></div></div>
+</div>
+</div>
+
+<!-- ─── タブ②：アパート・マンション ─── -->
+<div class="tab-pane" id="paneApt">
+<div class="main">
+  <div class="page-title-area">
+    <div class="page-title">アパート・マンション 市区町村分析</div>
+    <div class="page-subtitle">共同住宅（賃貸・持家）の分布を確認 ／ 引越し・宅配・通信サービスなどの配信エリア最適化に活用</div>
+  </div>
+  <div class="cond-panel">
+    <div class="cond-title">▼ 表示条件</div>
+    <div class="cond-row">
+      <span class="cond-label">都道府県</span>
+      <select id="prefSelApt"></select>
+      <div class="cond-note">対象: 市区及び人口1万5千人以上の町村<br>調査基準日: 令和5年（2023年）10月1日</div>
+    </div>
+  </div>
+  <div class="legend-row">
+    <span class="legend-label">表示切替：</span>
+    <button class="cat-btn" data-tab="apt" data-cat="det" onclick="toggleCat('apt','det')"><span class="cat-swatch" style="background:var(--c-det)"></span>一戸建て</button>
+    <button class="cat-btn" data-tab="apt" data-cat="ren" onclick="toggleCat('apt','ren')"><span class="cat-swatch" style="background:var(--c-ren)"></span>共同住宅（賃貸）</button>
+    <button class="cat-btn" data-tab="apt" data-cat="cnd" onclick="toggleCat('apt','cnd')"><span class="cat-swatch" style="background:var(--c-cnd)"></span>共同住宅（持家）</button>
+    <button class="cat-btn" data-tab="apt" data-cat="oth" onclick="toggleCat('apt','oth')"><span class="cat-swatch" style="background:var(--c-oth)"></span>長屋・その他</button>
+  </div>
+  <div id="viewApt"><div class="empty-state"><strong>都道府県を選択してください</strong><p>表示条件から都道府県を選択すると、共同住宅率を中心とした市区町村別の構成が表示されます。</p></div></div>
+</div>
+</div>
+
+<!-- ツールチップ -->
+<div class="tip" id="tip">
+  <div class="tip-city" id="tc"></div>
+  <div id="tr"></div>
+</div>
+
+<!-- 地図パネル -->
+<div class="map-overlay" id="mapOverlay" onclick="closeMap(event)">
+  <div class="map-panel">
+
+    <!-- ヘッダー -->
+    <div class="map-panel-header">
+      <div>
+        <div class="map-panel-title" id="mapTitle"></div>
+        <div class="map-panel-sub">市区町村境界を強調表示（OpenStreetMap）</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <a class="map-link-btn" id="mapGoogleLink" href="#" target="_blank" rel="noopener">
+          🗺 Google マップで開く
+        </a>
+        <button class="map-close" onclick="closeMapBtn()">✕ 閉じる</button>
+      </div>
+    </div>
+
+    <!-- ボディ：左＝データ詳細 / 右＝地図 -->
+    <div class="map-body">
+
+      <!-- 左：データ詳細 -->
+      <div class="map-detail">
+        <div class="map-detail-title">住宅データ詳細</div>
+        <div id="mapDetailRows"></div>
+        <div class="map-detail-total" id="mapDetailTotal"></div>
+        <div class="map-detail-note">令和5年住宅・土地統計調査（確報集計）</div>
+      </div>
+
+      <!-- 右：Leaflet地図 -->
+      <div class="map-leaflet-wrap" id="mapLeafletWrap"></div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// データ（令和5年住宅・土地統計調査 確報集計 単位:百戸）
+// ═══════════════════════════════════════════════════════
+var DATA = {
+  '北海道': [
+    ['札幌市中央区',5,316,110,4],['札幌市北区',96,218,32,6],['札幌市東区',112,182,28,5],
+    ['札幌市白石区',99,175,26,4],['札幌市豊平区',80,186,32,4],['札幌市南区',85,62,8,5],
+    ['札幌市西区',107,161,26,3],['札幌市厚別区',75,103,18,2],['札幌市手稲区',77,107,18,2],
+    ['札幌市清田区',68,73,12,2],['函館市',128,174,26,8],['旭川市',120,163,24,7],
+    ['釧路市',69,100,14,5],['帯広市',57,87,13,4],['北見市',46,58,8,3],
+    ['苫小牧市',60,75,11,3],['小樽市',42,65,9,4],['江別市',54,66,10,2],
+    ['千歳市',39,53,8,2],['恵庭市',33,34,5,1],['北広島市',33,38,5,1],
+    ['石狩市',30,28,4,1],['登別市',24,28,4,1],['伊達市',18,18,2,1],
+  ],
+  '青森県': [
+    ['青森市',92,131,20,5],['弘前市',66,78,12,4],['八戸市',96,115,17,5],
+    ['黒石市',17,17,2,1],['五所川原市',24,26,4,1],['十和田市',27,32,5,1],
+    ['三沢市',17,22,3,1],['むつ市',20,21,3,1],['つがる市',18,14,2,1],['平川市',16,15,2,1],
+  ],
+  '岩手県': [
+    ['盛岡市',78,108,16,4],['宮古市',24,28,4,1],['大船渡市',18,21,3,1],
+    ['花巻市',35,37,5,1],['北上市',37,42,6,2],['久慈市',17,19,3,1],
+    ['遠野市',12,12,2,1],['一関市',46,46,7,2],['陸前高田市',10,10,1,1],
+    ['釜石市',16,19,3,1],['二戸市',16,16,2,1],['八幡平市',14,13,2,1],
+    ['奥州市',46,45,7,2],['滝沢市',28,31,5,1],
+  ],
+  '宮城県': [
+    ['仙台市青葉区',34,204,64,4],['仙台市宮城野区',60,130,31,3],['仙台市若林区',55,101,24,3],
+    ['仙台市太白区',108,142,32,4],['仙台市泉区',106,123,27,3],['石巻市',66,72,11,3],
+    ['塩竈市',19,28,5,1],['気仙沼市',23,25,4,1],['白石市',15,16,2,1],
+    ['名取市',42,47,7,2],['角田市',14,13,2,1],['多賀城市',20,26,5,1],
+    ['岩沼市',21,23,4,1],['登米市',42,35,5,2],['栗原市',39,31,5,2],
+    ['東松島市',21,21,3,1],['大崎市',59,56,8,3],['富谷市',35,36,5,1],
+  ],
+  '秋田県': [
+    ['秋田市',93,122,18,5],['能代市',21,22,3,1],['横手市',36,35,5,2],
+    ['大館市',27,27,4,1],['男鹿市',14,11,2,1],['湯沢市',18,17,2,1],
+    ['鹿角市',16,14,2,1],['由利本荘市',35,30,4,2],['潟上市',16,15,2,1],
+    ['大仙市',36,33,5,2],['北秋田市',16,13,2,1],['にかほ市',14,12,2,1],['仙北市',14,12,2,1],
+  ],
+  '山形県': [
+    ['山形市',79,107,16,4],['米沢市',34,40,6,2],['鶴岡市',52,56,8,3],
+    ['酒田市',41,46,7,2],['新庄市',18,20,3,1],['寒河江市',18,19,3,1],
+    ['上山市',16,16,2,1],['村山市',14,14,2,1],['長井市',17,16,2,1],
+    ['天童市',31,33,5,1],['東根市',26,28,4,1],['尾花沢市',10,9,1,1],['南陽市',17,16,2,1],
+  ],
+  '福島県': [
+    ['福島市',102,124,18,5],['会津若松市',55,65,10,3],['郡山市',130,161,24,6],
+    ['いわき市',163,158,23,8],['白河市',33,36,5,2],['須賀川市',39,42,6,2],
+    ['喜多方市',23,22,3,1],['相馬市',18,19,3,1],['二本松市',27,26,4,1],
+    ['田村市',22,20,3,1],['南相馬市',28,28,4,1],['伊達市',33,29,4,2],['本宮市',19,20,3,1],
+  ],
+  '茨城県': [
+    ['水戸市',88,131,20,5],['日立市',68,79,12,4],['土浦市',49,68,10,3],
+    ['古河市',57,60,9,3],['石岡市',35,34,5,2],['結城市',22,23,3,1],
+    ['龍ケ崎市',38,42,6,2],['下妻市',22,21,3,1],['常総市',34,33,5,2],
+    ['常陸太田市',25,22,3,1],['高萩市',15,15,2,1],['北茨城市',21,19,3,1],
+    ['笠間市',30,28,4,1],['取手市',49,58,9,2],['牛久市',43,52,8,2],
+    ['つくば市',106,134,20,4],['ひたちなか市',73,82,12,3],['鹿嶋市',31,34,5,1],
+    ['潮来市',17,17,2,1],['守谷市',41,45,7,1],['常陸大宮市',21,18,3,1],
+    ['那珂市',30,30,4,1],['筑西市',41,37,6,2],['坂東市',27,23,3,1],
+    ['稲敷市',22,17,3,1],['かすみがうら市',19,18,3,1],['桜川市',20,17,2,1],
+    ['神栖市',44,47,7,2],['行方市',19,16,2,1],['鉾田市',22,19,3,1],
+    ['つくばみらい市',25,25,4,1],['小美玉市',25,22,3,1],
+  ],
+  '栃木県': [
+    ['宇都宮市',172,246,37,8],['足利市',60,68,10,3],['栃木市',65,68,10,3],
+    ['佐野市',57,60,9,3],['鹿沼市',49,50,7,2],['日光市',47,44,7,2],
+    ['小山市',78,92,14,3],['真岡市',41,43,6,2],['大田原市',38,38,6,2],
+    ['矢板市',19,20,3,1],['那須塩原市',56,62,9,2],['さくら市',21,22,3,1],
+    ['那須烏山市',16,15,2,1],['下野市',34,38,6,1],
+  ],
+  '群馬県': [
+    ['前橋市',134,161,24,6],['高崎市',166,197,29,7],['桐生市',55,56,8,3],
+    ['伊勢崎市',89,99,15,4],['太田市',100,108,16,4],['沼田市',27,27,4,1],
+    ['館林市',34,37,5,2],['渋川市',34,33,5,2],['藤岡市',32,32,5,1],
+    ['富岡市',27,26,4,1],['安中市',29,26,4,1],['みどり市',26,23,3,1],
+  ],
+  '埼玉県': [
+    ['さいたま市西区',30,37,6,1],['さいたま市北区',41,59,9,2],['さいたま市大宮区',36,104,20,3],
+    ['さいたま市見沼区',63,79,12,2],['さいたま市中央区',26,60,10,1],['さいたま市桜区',34,55,9,1],
+    ['さいたま市浦和区',49,117,22,2],['さいたま市南区',47,108,20,2],['さいたま市緑区',51,75,12,2],
+    ['さいたま市岩槻区',53,65,10,2],['川越市',131,167,25,5],['熊谷市',96,107,16,4],
+    ['川口市',163,338,60,8],['行田市',38,41,6,2],['秩父市',27,28,4,1],
+    ['所沢市',137,173,26,5],['飯能市',36,38,6,2],['加須市',53,51,8,2],
+    ['本庄市',33,34,5,1],['東松山市',40,44,7,2],['春日部市',108,131,20,4],
+    ['狭山市',71,88,13,3],['羽生市',27,27,4,1],['鴻巣市',53,55,8,2],
+    ['深谷市',66,67,10,3],['上尾市',91,112,17,3],['草加市',101,170,30,4],
+    ['越谷市',142,200,35,5],['蕨市',19,62,12,1],['戸田市',50,134,24,2],
+    ['入間市',71,82,12,3],['朝霞市',55,95,16,2],['志木市',30,55,10,1],
+    ['和光市',29,65,11,1],['新座市',70,106,18,2],['桶川市',42,47,7,2],
+    ['久喜市',83,88,13,3],['北本市',37,40,6,1],['八潮市',51,79,14,2],
+    ['富士見市',52,73,12,2],['三郷市',73,104,18,3],['蓮田市',32,35,5,1],
+    ['坂戸市',45,52,8,2],['幸手市',30,31,5,1],['鶴ヶ島市',33,38,6,1],
+    ['日高市',31,32,5,1],['吉川市',33,44,7,1],['ふじみ野市',52,78,13,2],['白岡市',29,30,5,1],
+  ],
+  '千葉県': [
+    ['千葉市中央区',38,170,34,3],['千葉市花見川区',64,118,22,3],['千葉市稲毛区',57,104,20,2],
+    ['千葉市若葉区',71,109,20,3],['千葉市緑区',55,83,15,2],['千葉市美浜区',33,103,21,2],
+    ['銚子市',34,36,5,2],['市川市',148,302,57,6],['船橋市',196,378,69,8],
+    ['館山市',21,23,4,1],['木更津市',53,72,11,3],['松戸市',153,289,52,7],
+    ['野田市',64,72,11,3],['茂原市',39,44,7,2],['成田市',60,75,11,2],
+    ['佐倉市',78,93,14,3],['東金市',28,31,5,1],['旭市',31,29,4,2],
+    ['習志野市',60,130,25,2],['柏市',154,238,44,6],['勝浦市',14,13,2,1],
+    ['市原市',112,126,19,5],['流山市',81,139,25,3],['八千代市',88,143,26,3],
+    ['我孫子市',64,89,16,3],['鴨川市',18,18,3,1],['鎌ケ谷市',56,90,16,2],
+    ['君津市',39,41,6,2],['富津市',22,21,3,1],['浦安市',54,144,31,2],
+    ['四街道市',41,54,9,2],['袖ケ浦市',30,35,5,1],['八街市',33,29,4,2],
+    ['印西市',44,54,9,1],['白井市',30,34,5,1],['富里市',24,25,4,1],
+    ['南房総市',23,19,3,1],['匝瑳市',18,16,2,1],['香取市',31,28,4,2],
+    ['山武市',26,22,3,1],['いすみ市',17,15,2,1],['大網白里市',22,22,3,1],
+  ],
+  '東京都': [
+    ['千代田区',4,58,20,1],['中央区',8,137,46,1],['港区',14,196,67,2],
+    ['新宿区',14,277,73,3],['文京区',16,145,39,2],['台東区',19,157,35,3],
+    ['墨田区',30,153,34,3],['江東区',55,282,64,5],['品川区',34,246,59,3],
+    ['目黒区',28,196,51,2],['大田区',115,378,82,8],['世田谷区',155,441,94,8],
+    ['渋谷区',19,199,54,2],['中野区',24,234,53,3],['杉並区',76,289,65,5],
+    ['豊島区',18,252,60,3],['北区',32,237,56,4],['荒川区',24,160,36,3],
+    ['板橋区',56,387,82,6],['練馬区',129,375,77,8],['足立区',111,432,83,10],
+    ['葛飾区',82,278,55,7],['江戸川区',124,356,71,10],
+    ['八王子市',168,226,43,7],['立川市',53,117,22,3],['武蔵野市',32,111,27,2],
+    ['三鷹市',52,113,25,2],['青梅市',46,62,11,2],['府中市',72,153,30,3],
+    ['昭島市',44,78,14,2],['調布市',65,155,30,3],['町田市',138,237,44,6],
+    ['小金井市',35,81,16,2],['小平市',62,110,21,3],['日野市',67,116,21,3],
+    ['東村山市',56,103,19,3],['国分寺市',38,89,18,2],['国立市',27,56,11,1],
+    ['福生市',24,48,9,1],['狛江市',24,65,13,1],['東大和市',33,60,11,1],
+    ['清瀬市',28,53,10,1],['東久留米市',43,76,14,2],['武蔵村山市',30,50,9,1],
+    ['多摩市',47,96,18,2],['稲城市',37,70,13,1],['羽村市',22,35,6,1],
+    ['あきる野市',31,43,8,1],['西東京市',58,130,25,2],
+  ],
+  '神奈川県': [
+    ['横浜市鶴見区',73,222,47,5],['横浜市神奈川区',51,195,43,4],['横浜市西区',15,122,30,1],
+    ['横浜市中区',27,178,41,2],['横浜市南区',48,192,41,4],['横浜市保土ケ谷区',56,169,36,3],
+    ['横浜市磯子区',46,125,27,2],['横浜市金沢区',59,144,30,3],['横浜市港北区',91,282,62,5],
+    ['横浜市戸塚区',91,218,47,4],['横浜市港南区',69,162,35,3],['横浜市旭区',77,164,35,3],
+    ['横浜市緑区',70,143,30,3],['横浜市瀬谷区',47,98,21,2],['横浜市栄区',46,96,20,2],
+    ['横浜市泉区',55,110,23,2],['横浜市青葉区',98,178,36,4],['横浜市都筑区',68,162,33,3],
+    ['川崎市川崎区',54,242,51,5],['川崎市幸区',38,149,33,3],['川崎市中原区',57,236,53,4],
+    ['川崎市高津区',61,198,44,3],['川崎市多摩区',60,172,37,3],['川崎市宮前区',71,164,35,3],
+    ['川崎市麻生区',65,130,27,3],['相模原市緑区',63,108,21,3],['相模原市中央区',66,175,35,3],
+    ['相模原市南区',77,175,35,3],['横須賀市',104,185,37,5],['平塚市',71,110,21,3],
+    ['鎌倉市',54,85,17,2],['藤沢市',120,196,38,5],['小田原市',70,101,19,3],
+    ['茅ヶ崎市',74,117,23,3],['逗子市',19,32,6,1],['三浦市',16,22,4,1],
+    ['秦野市',62,90,17,3],['厚木市',74,116,22,3],['大和市',82,155,30,3],
+    ['伊勢原市',40,58,11,2],['海老名市',53,97,18,2],['座間市',46,81,15,2],
+    ['南足柄市',18,22,4,1],['綾瀬市',35,54,10,2],
+  ],
+  '新潟県': [
+    ['新潟市北区',27,26,4,1],['新潟市東区',46,70,11,2],['新潟市中央区',30,117,20,3],
+    ['新潟市江南区',32,41,6,1],['新潟市秋葉区',30,34,5,1],['新潟市南区',20,18,3,1],
+    ['新潟市西区',53,72,11,2],['新潟市西蒲区',28,20,3,1],['長岡市',104,115,17,5],
+    ['三条市',49,48,7,2],['柏崎市',34,35,5,2],['新発田市',44,45,7,2],
+    ['小千谷市',19,19,3,1],['加茂市',16,17,2,1],['十日町市',25,24,4,1],
+    ['見附市',19,20,3,1],['村上市',31,29,4,2],['燕市',36,36,5,2],
+    ['糸魚川市',22,20,3,1],['妙高市',18,16,2,1],['五泉市',22,21,3,1],
+    ['上越市',80,83,12,4],['阿賀野市',20,17,2,1],['佐渡市',31,25,4,2],
+    ['魚沼市',22,20,3,1],['南魚沼市',25,24,4,1],['胎内市',15,14,2,1],
+  ],
+  '富山県': [
+    ['富山市',155,167,25,7],['高岡市',79,78,12,4],['魚津市',24,24,4,1],
+    ['氷見市',21,19,3,1],['滑川市',18,18,3,1],['砺波市',28,24,4,1],
+    ['小矢部市',16,14,2,1],['南砺市',28,22,3,1],['射水市',43,43,6,2],
+  ],
+  '石川県': [
+    ['金沢市',122,182,29,6],['七尾市',28,26,4,1],['小松市',47,50,8,2],
+    ['輪島市',14,12,2,1],['珠洲市',8,7,1,0],['加賀市',32,31,5,1],
+    ['羽咋市',13,12,2,1],['かほく市',16,14,2,1],['白山市',51,50,8,2],
+    ['能美市',23,21,3,1],['野々市市',26,33,5,1],
+  ],
+  '福井県': [
+    ['福井市',91,103,16,4],['敦賀市',32,37,6,2],['小浜市',14,14,2,1],
+    ['大野市',17,15,2,1],['勝山市',11,11,2,0],['鯖江市',26,26,4,1],
+    ['あわら市',14,12,2,1],['越前市',40,39,6,2],['坂井市',36,34,5,2],
+  ],
+  '山梨県': [
+    ['甲府市',61,92,14,3],['富士吉田市',25,28,4,1],['都留市',18,20,3,1],
+    ['山梨市',19,19,3,1],['大月市',13,14,2,1],['韮崎市',17,16,2,1],
+    ['南アルプス市',38,34,5,2],['北杜市',24,20,3,1],['甲斐市',41,42,6,2],
+    ['笛吹市',37,35,5,2],['上野原市',14,14,2,1],['甲州市',19,17,2,1],['中央市',20,20,3,1],
+  ],
+  '長野県': [
+    ['長野市',155,183,27,7],['松本市',107,134,20,5],['上田市',64,73,11,3],
+    ['岡谷市',28,35,5,2],['飯田市',44,48,7,2],['諏訪市',27,37,6,2],
+    ['須坂市',26,27,4,1],['小諸市',21,24,4,1],['伊那市',37,38,6,2],
+    ['駒ヶ根市',20,22,3,1],['中野市',23,23,3,1],['大町市',16,17,2,1],
+    ['飯山市',11,11,2,0],['茅野市',30,33,5,1],['塩尻市',33,36,5,1],
+    ['佐久市',50,53,8,2],['千曲市',35,36,5,2],['東御市',19,18,3,1],['安曇野市',50,49,7,2],
+  ],
+  '岐阜県': [
+    ['岐阜市',152,222,34,7],['大垣市',78,97,15,4],['高山市',43,46,7,2],
+    ['多治見市',51,63,10,3],['関市',43,46,7,2],['中津川市',42,43,6,2],
+    ['美濃市',14,14,2,1],['瑞浪市',21,22,3,1],['羽島市',29,30,4,1],
+    ['恵那市',24,24,4,1],['美濃加茂市',31,35,5,2],['土岐市',31,33,5,1],
+    ['各務原市',71,85,13,3],['可児市',48,54,8,2],['山県市',17,14,2,1],
+    ['瑞穂市',23,24,4,1],['飛騨市',16,13,2,1],['本巣市',22,21,3,1],
+    ['郡上市',27,24,4,1],['下呂市',17,14,2,1],['海津市',19,16,2,1],
+  ],
+  '静岡県': [
+    ['静岡市葵区',53,119,20,3],['静岡市駿河区',63,120,21,3],['静岡市清水区',77,131,22,4],
+    ['浜松市中央区',238,347,56,11],['浜松市浜名区',57,68,10,3],['浜松市天竜区',22,18,3,1],
+    ['沼津市',72,107,17,4],['熱海市',22,34,6,1],['三島市',40,63,10,2],
+    ['富士宮市',53,63,10,3],['伊東市',23,38,7,1],['島田市',40,48,7,2],
+    ['富士市',92,122,19,4],['磐田市',60,74,11,3],['焼津市',57,74,11,3],
+    ['掛川市',48,55,8,2],['藤枝市',53,66,10,3],['御殿場市',38,45,7,2],
+    ['袋井市',42,49,7,2],['湖西市',28,30,5,1],['伊豆市',16,17,2,1],
+    ['牧之原市',27,27,4,1],['伊豆の国市',27,29,4,1],['菊川市',24,26,4,1],['裾野市',24,28,4,1],
+  ],
+  '愛知県': [
+    ['名古屋市千種区',22,122,26,2],['名古屋市東区',11,96,21,1],['名古屋市北区',43,145,28,3],
+    ['名古屋市西区',34,146,29,3],['名古屋市中村区',31,173,35,3],['名古屋市中区',8,134,31,1],
+    ['名古屋市昭和区',27,131,28,2],['名古屋市瑞穂区',26,115,24,2],['名古屋市熱田区',18,84,17,2],
+    ['名古屋市中川区',62,179,34,4],['名古屋市港区',56,152,29,4],['名古屋市南区',49,145,28,4],
+    ['名古屋市守山区',62,141,27,3],['名古屋市緑区',97,197,39,5],['名古屋市名東区',57,164,33,3],
+    ['名古屋市天白区',59,160,32,3],['豊橋市',148,198,31,7],['岡崎市',150,200,31,7],
+    ['一宮市',151,185,28,7],['瀬戸市',55,67,10,3],['半田市',51,63,10,3],
+    ['春日井市',134,171,26,6],['豊川市',84,104,16,4],['津島市',26,33,5,1],
+    ['碧南市',29,35,5,1],['刈谷市',58,89,14,3],['豊田市',198,261,40,9],
+    ['安城市',75,97,15,3],['西尾市',71,87,13,3],['蒲郡市',36,47,7,2],
+    ['犬山市',40,51,8,2],['常滑市',31,39,6,1],['江南市',43,55,8,2],
+    ['小牧市',63,84,13,3],['稲沢市',62,78,12,3],['新城市',29,30,5,1],
+    ['東海市',56,76,12,3],['大府市',48,67,10,2],['知多市',39,51,8,2],
+    ['知立市',29,44,7,1],['尾張旭市',39,54,9,2],['高浜市',22,32,5,1],
+    ['岩倉市',21,31,5,1],['豊明市',33,49,8,2],['日進市',49,73,11,2],
+    ['田原市',35,38,6,1],['愛西市',32,34,5,1],['清須市',33,48,8,1],
+    ['北名古屋市',43,60,9,2],['弥富市',19,23,4,1],['みよし市',32,42,6,1],
+    ['あま市',41,52,8,2],['長久手市',36,55,8,1],
+  ],
+  '三重県': [
+    ['津市',107,135,20,5],['四日市市',132,170,26,6],['伊勢市',52,61,9,3],
+    ['松阪市',62,73,11,3],['桑名市',51,67,10,2],['鈴鹿市',84,106,16,4],
+    ['名張市',38,46,7,2],['尾鷲市',14,14,2,1],['亀山市',25,27,4,1],
+    ['鳥羽市',10,11,2,0],['熊野市',12,11,2,1],['いなべ市',24,24,4,1],
+    ['志摩市',19,20,3,1],['伊賀市',43,47,7,2],
+  ],
+  '滋賀県': [
+    ['大津市',103,163,26,4],['彦根市',52,67,10,2],['長浜市',57,59,9,3],
+    ['近江八幡市',39,49,8,2],['草津市',69,113,18,3],['守山市',48,63,10,2],
+    ['栗東市',38,52,8,1],['甲賀市',46,49,7,2],['野洲市',30,38,6,1],
+    ['湖南市',29,37,6,1],['高島市',26,25,4,1],['東近江市',56,58,9,2],['米原市',22,22,3,1],
+  ],
+  '京都府': [
+    ['京都市北区',26,79,16,2],['京都市上京区',14,77,16,2],['京都市左京区',33,119,23,2],
+    ['京都市中京区',14,122,27,2],['京都市東山区',8,42,8,1],['京都市下京区',15,97,21,2],
+    ['京都市南区',22,79,15,2],['京都市右京区',53,149,29,3],['京都市伏見区',93,224,43,4],
+    ['京都市山科区',40,115,23,2],['京都市西京区',61,138,26,3],
+    ['福知山市',37,43,7,2],['舞鶴市',36,43,7,2],['綾部市',16,16,2,1],
+    ['宇治市',70,107,19,3],['宮津市',12,13,2,1],['亀岡市',45,56,9,2],
+    ['城陽市',35,46,8,1],['向日市',22,44,9,1],['長岡京市',33,60,11,1],
+    ['八幡市',27,44,8,1],['京田辺市',30,43,7,1],['京丹後市',28,27,4,1],
+    ['南丹市',20,19,3,1],['木津川市',34,44,7,1],
+  ],
+  '大阪府': [
+    ['大阪市都島区',12,101,24,1],['大阪市福島区',12,87,21,1],['大阪市此花区',17,62,13,1],
+    ['大阪市西区',10,116,30,1],['大阪市港区',13,73,15,1],['大阪市大正区',16,69,13,1],
+    ['大阪市天王寺区',8,87,21,1],['大阪市浪速区',9,73,15,1],['大阪市西淀川区',19,83,16,2],
+    ['大阪市淀川区',21,175,39,2],['大阪市東淀川区',28,166,34,3],['大阪市東成区',15,88,18,2],
+    ['大阪市生野区',31,124,23,3],['大阪市旭区',21,96,19,2],['大阪市城東区',24,152,31,3],
+    ['大阪市鶴見区',21,108,22,2],['大阪市阿倍野区',17,108,24,2],['大阪市住之江区',29,121,25,3],
+    ['大阪市住吉区',38,131,27,3],['大阪市東住吉区',37,128,26,3],['大阪市平野区',53,178,34,5],
+    ['大阪市西成区',15,112,21,3],
+    ['堺市堺区',37,115,23,3],['堺市中区',43,95,19,2],['堺市東区',38,76,15,2],
+    ['堺市西区',48,98,19,3],['堺市南区',52,87,17,2],['堺市北区',44,105,21,2],['堺市美原区',19,30,6,1],
+    ['岸和田市',53,78,14,3],['豊中市',104,222,46,4],['池田市',32,58,11,1],
+    ['吹田市',90,207,43,4],['泉大津市',26,47,9,1],['高槻市',107,196,37,4],
+    ['貝塚市',28,42,8,1],['守口市',31,97,20,2],['枚方市',132,216,41,5],
+    ['茨木市',85,155,30,3],['八尾市',82,153,28,4],['泉佐野市',29,50,9,1],
+    ['富田林市',44,67,12,2],['寝屋川市',71,140,27,3],['河内長野市',40,58,11,2],
+    ['松原市',41,75,14,2],['大東市',44,82,16,2],['和泉市',71,102,19,3],
+    ['箕面市',49,89,17,2],['柏原市',24,48,10,1],['羽曳野市',46,77,14,2],
+    ['門真市',27,87,17,2],['摂津市',30,65,13,1],['高石市',17,34,7,0],
+    ['藤井寺市',21,43,9,1],['東大阪市',129,274,50,6],['泉南市',26,36,7,1],
+    ['四條畷市',26,41,8,1],['交野市',29,46,9,1],['大阪狭山市',24,40,8,1],['阪南市',22,28,5,1],
+  ],
+  '兵庫県': [
+    ['神戸市東灘区',58,177,38,3],['神戸市灘区',28,124,27,2],['神戸市兵庫区',25,99,20,2],
+    ['神戸市長田区',24,90,18,2],['神戸市須磨区',44,118,25,2],['神戸市垂水区',63,146,30,3],
+    ['神戸市北区',72,128,25,3],['神戸市中央区',16,195,47,2],['神戸市西区',86,172,33,4],
+    ['姫路市',185,252,39,8],['尼崎市',89,249,47,5],['明石市',82,167,31,4],
+    ['西宮市',138,259,49,6],['洲本市',20,22,3,1],['芦屋市',24,56,12,1],
+    ['伊丹市',60,123,23,3],['相生市',17,18,3,1],['豊岡市',29,30,5,1],
+    ['加古川市',91,131,21,4],['赤穂市',24,26,4,1],['西脇市',18,18,3,1],
+    ['宝塚市',71,120,22,3],['三木市',36,43,7,2],['高砂市',35,50,8,2],
+    ['川西市',57,96,18,2],['小野市',23,24,4,1],['三田市',47,68,11,2],
+    ['加西市',20,19,3,1],['丹波篠山市',21,18,3,1],['養父市',12,10,2,0],
+    ['丹波市',28,26,4,1],['南あわじ市',21,19,3,1],['朝来市',15,13,2,1],
+    ['淡路市',23,22,3,1],['宍粟市',18,15,2,1],['加東市',21,21,3,1],['たつの市',25,26,4,1],
+  ],
+  '奈良県': [
+    ['奈良市',120,163,27,5],['大和高田市',27,43,8,1],['大和郡山市',33,47,8,1],
+    ['天理市',27,33,5,1],['橿原市',52,74,12,2],['桜井市',28,32,5,1],
+    ['五條市',18,16,2,1],['御所市',14,13,2,1],['生駒市',56,83,14,2],
+    ['香芝市',35,51,8,1],['葛城市',22,28,5,1],['宇陀市',17,14,2,1],
+  ],
+  '和歌山県': [
+    ['和歌山市',120,152,22,6],['海南市',23,24,4,1],['橋本市',27,30,5,1],
+    ['有田市',13,14,2,1],['御坊市',13,14,2,1],['田辺市',36,36,5,2],
+    ['新宮市',15,16,2,1],['紀の川市',28,25,4,1],['岩出市',23,24,4,1],
+  ],
+  '鳥取県': [
+    ['鳥取市',57,67,10,3],['米子市',59,72,11,3],['倉吉市',24,25,4,1],['境港市',15,16,2,1],
+  ],
+  '島根県': [
+    ['松江市',73,84,13,3],['浜田市',28,29,4,1],['出雲市',73,77,12,3],
+    ['益田市',23,22,3,1],['大田市',17,15,2,1],['安来市',19,17,2,1],
+    ['江津市',12,12,2,1],['雲南市',17,14,2,1],
+  ],
+  '岡山県': [
+    ['岡山市北区',107,178,28,5],['岡山市中区',46,79,13,2],['岡山市東区',43,60,9,2],
+    ['岡山市南区',57,82,13,3],['倉敷市',160,197,30,7],['津山市',49,55,8,2],
+    ['玉野市',27,28,4,1],['笠岡市',22,21,3,1],['井原市',18,16,2,1],
+    ['総社市',34,38,6,1],['高梁市',18,15,2,1],['新見市',17,14,2,1],
+    ['備前市',19,18,3,1],['瀬戸内市',22,21,3,1],['赤磐市',27,27,4,1],
+    ['真庭市',23,20,3,1],['美作市',16,14,2,1],['浅口市',18,17,2,1],
+  ],
+  '広島県': [
+    ['広島市中区',15,167,38,2],['広島市東区',37,122,26,2],['広島市南区',44,160,34,3],
+    ['広島市西区',48,149,32,3],['広島市安佐南区',105,195,38,5],['広島市安佐北区',65,103,19,3],
+    ['広島市安芸区',37,78,15,2],['広島市佐伯区',63,118,22,3],
+    ['呉市',78,106,17,4],['竹原市',15,14,2,1],['三原市',37,40,6,2],
+    ['尾道市',52,59,9,3],['福山市',172,208,32,8],['府中市',20,20,3,1],
+    ['三次市',23,22,3,1],['庄原市',18,14,2,1],['大竹市',16,17,3,1],
+    ['東広島市',71,91,14,3],['廿日市市',57,79,13,3],['安芸高田市',16,13,2,1],['江田島市',16,13,2,1],
+  ],
+  '山口県': [
+    ['下関市',106,120,18,5],['宇部市',68,83,13,3],['山口市',82,99,15,4],
+    ['萩市',22,20,3,1],['防府市',44,52,8,2],['下松市',27,32,5,1],
+    ['岩国市',52,58,9,2],['光市',27,30,5,1],['長門市',17,15,2,1],
+    ['柳井市',18,19,3,1],['美祢市',15,14,2,1],['周南市',65,75,11,3],['山陽小野田市',36,38,6,2],
+  ],
+  '徳島県': [
+    ['徳島市',76,110,17,4],['鳴門市',27,30,5,1],['小松島市',17,18,3,1],
+    ['阿南市',34,36,5,2],['吉野川市',23,22,3,1],['阿波市',21,18,3,1],
+    ['美馬市',18,16,2,1],['三好市',15,12,2,1],
+  ],
+  '香川県': [
+    ['高松市',139,179,27,6],['丸亀市',49,58,9,2],['坂出市',25,28,4,1],
+    ['善通寺市',18,20,3,1],['観音寺市',28,28,4,1],['さぬき市',24,23,4,1],
+    ['東かがわ市',16,14,2,1],['三豊市',35,31,5,2],
+  ],
+  '愛媛県': [
+    ['松山市',156,208,32,7],['今治市',60,67,10,3],['宇和島市',29,30,5,1],
+    ['八幡浜市',16,15,2,1],['新居浜市',48,56,8,2],['西条市',43,46,7,2],
+    ['大洲市',22,20,3,1],['伊予市',18,19,3,1],['四国中央市',40,42,6,2],
+    ['西予市',18,16,2,1],['東温市',17,18,3,1],
+  ],
+  '高知県': [
+    ['高知市',107,148,23,5],['室戸市',9,9,1,0],['安芸市',12,12,2,0],
+    ['南国市',22,24,4,1],['土佐市',14,14,2,1],['須崎市',12,12,2,0],
+    ['宿毛市',13,13,2,1],['土佐清水市',10,9,1,0],['四万十市',22,22,3,1],
+    ['香南市',18,18,3,1],['香美市',16,15,2,1],
+  ],
+  '福岡県': [
+    ['北九州市門司区',28,47,8,2],['北九州市若松区',27,43,7,2],['北九州市戸畑区',18,37,7,1],
+    ['北九州市小倉北区',37,116,22,3],['北九州市小倉南区',63,97,17,3],
+    ['北九州市八幡東区',22,51,9,2],['北九州市八幡西区',71,118,20,4],
+    ['福岡市東区',60,221,47,4],['福岡市博多区',25,242,56,3],['福岡市中央区',14,224,56,2],
+    ['福岡市南区',58,220,48,4],['福岡市西区',79,183,39,4],['福岡市城南区',40,148,33,3],
+    ['福岡市早良区',70,195,42,4],['大牟田市',39,51,8,2],['久留米市',111,148,23,5],
+    ['直方市',23,26,4,1],['飯塚市',48,56,8,2],['田川市',21,24,4,1],
+    ['柳川市',23,23,3,1],['八女市',28,25,4,1],['筑後市',21,23,4,1],
+    ['大川市',19,19,3,1],['行橋市',25,30,5,1],['豊前市',12,11,2,0],
+    ['中間市',16,18,3,1],['小郡市',27,31,5,1],['筑紫野市',44,60,10,2],
+    ['春日市',44,76,14,2],['大野城市',46,73,14,2],['宗像市',44,57,10,2],
+    ['太宰府市',29,45,8,1],['古賀市',29,39,7,1],['福津市',31,40,7,1],
+    ['うきは市',16,14,2,1],['宮若市',17,17,3,1],['嘉麻市',19,19,3,1],
+    ['朝倉市',31,27,4,1],['みやま市',20,17,3,1],['糸島市',44,53,9,2],['那珂川市',24,30,5,1],
+  ],
+  '佐賀県': [
+    ['佐賀市',90,111,17,4],['唐津市',49,53,8,2],['鳥栖市',32,40,6,1],
+    ['多久市',12,12,2,0],['伊万里市',24,24,4,1],['武雄市',22,23,4,1],
+    ['鹿島市',15,14,2,1],['小城市',22,22,3,1],['嬉野市',14,13,2,1],['神埼市',17,15,2,1],
+  ],
+  '長崎県': [
+    ['長崎市',95,142,23,5],['佐世保市',79,103,16,4],['島原市',18,20,3,1],
+    ['諫早市',50,59,9,2],['大村市',34,46,7,2],['平戸市',14,13,2,1],
+    ['松浦市',12,11,2,0],['対馬市',14,13,2,1],['壱岐市',11,11,2,0],
+    ['五島市',15,14,2,1],['西海市',13,11,2,1],['雲仙市',19,17,3,1],['南島原市',18,14,2,1],
+  ],
+  '熊本県': [
+    ['熊本市中央区',33,173,36,2],['熊本市東区',72,148,29,4],['熊本市西区',44,103,21,2],
+    ['熊本市南区',60,107,20,3],['熊本市北区',63,105,19,3],
+    ['八代市',55,63,10,3],['人吉市',15,17,3,1],['荒尾市',22,25,4,1],
+    ['水俣市',14,14,2,1],['玉名市',26,27,4,1],['山鹿市',25,23,4,1],
+    ['菊池市',22,22,3,1],['宇土市',18,19,3,1],['上天草市',14,13,2,1],
+    ['宇城市',31,30,5,1],['阿蘇市',14,12,2,1],['天草市',34,32,5,2],['合志市',32,38,6,1],
+  ],
+  '大分県': [
+    ['大分市',120,172,28,5],['別府市',35,60,11,2],['中津市',43,46,7,2],
+    ['日田市',31,32,5,1],['佐伯市',28,27,4,1],['臼杵市',17,16,2,1],
+    ['津久見市',11,11,2,0],['竹田市',13,11,2,1],['豊後高田市',14,12,2,1],
+    ['杵築市',15,14,2,1],['宇佐市',30,29,4,1],['豊後大野市',20,17,3,1],
+    ['由布市',18,17,3,1],['国東市',15,12,2,1],
+  ],
+  '宮崎県': [
+    ['宮崎市',121,162,26,5],['都城市',67,73,11,3],['延岡市',51,62,10,2],
+    ['日南市',21,21,3,1],['小林市',19,18,3,1],['日向市',24,27,4,1],
+    ['串間市',12,11,2,0],['西都市',16,15,2,1],['えびの市',13,11,2,1],
+  ],
+  '鹿児島県': [
+    ['鹿児島市',161,267,46,7],['鹿屋市',41,46,7,2],['枕崎市',13,13,2,1],
+    ['阿久根市',13,11,2,1],['出水市',23,23,4,1],['指宿市',19,19,3,1],
+    ['西之表市',10,10,2,0],['垂水市',11,9,1,0],['薩摩川内市',47,50,8,2],
+    ['日置市',26,24,4,1],['曽於市',18,15,2,1],['霧島市',62,72,11,3],
+    ['いちき串木野市',15,14,2,1],['南さつま市',17,14,2,1],['志布志市',17,14,2,1],
+    ['奄美市',18,22,4,1],['南九州市',16,13,2,1],['伊佐市',14,11,2,1],['姶良市',35,40,6,2],
+  ],
+  '沖縄県': [
+    ['那覇市',32,215,57,3],['宜野湾市',27,84,21,1],['石垣市',14,22,5,0],
+    ['浦添市',29,103,26,2],['名護市',17,31,7,0],['糸満市',21,38,9,1],
+    ['沖縄市',35,105,25,2],['豊見城市',23,67,16,1],['うるま市',41,105,24,2],
+    ['宮古島市',16,29,7,0],['南城市',16,30,7,1],
+    ['読谷村',13,27,6,1],['嘉手納町',5,17,4,0],['北谷町',10,35,8,0],
+    ['北中城村',5,14,3,0],['中城村',7,18,4,0],['西原町',10,26,6,0],
+    ['与那原町',5,14,3,0],['南風原町',10,26,6,0],['八重瀬町',9,20,5,0],
+  ],
+};
+
+// 百戸 → 戸 に変換
+Object.keys(DATA).forEach(function(p) {
+  DATA[p].forEach(function(r) { r[1]*=100; r[2]*=100; r[3]*=100; r[4]*=100; });
+});
+
+// ═══════════════════════════════════════════════════════
+// 状態（タブごとに独立）
+// ═══════════════════════════════════════════════════════
+var CATS = [
+  { key:'det', label:'一戸建て',        color:'var(--c-det)' },
+  { key:'ren', label:'共同住宅（賃貸）', color:'var(--c-ren)' },
+  { key:'cnd', label:'共同住宅（持家）', color:'var(--c-cnd)' },
+  { key:'oth', label:'長屋・その他',    color:'var(--c-oth)' },
+];
+
+var state = {
+  det: { sort: 'det', cats: {det:true,ren:true,cnd:true,oth:true}, data: [], pref: '' },
+  apt: { sort: 'ren', cats: {det:true,ren:true,cnd:true,oth:true}, data: [], pref: '' },
+};
+var currentTab = 'det';
+
+// ── タブ切り替え
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById('paneDet').classList.toggle('active', tab === 'det');
+  document.getElementById('paneApt').classList.toggle('active', tab === 'apt');
+  document.getElementById('tabBtnDet').classList.toggle('active', tab === 'det');
+  document.getElementById('tabBtnApt').classList.toggle('active', tab === 'apt');
+}
+
+// ── 都道府県 select 初期化
+(function() {
+  ['prefSelDet', 'prefSelApt'].forEach(function(id) {
+    var tab = id === 'prefSelDet' ? 'det' : 'apt';
+    var sel = document.getElementById(id);
+    var o0 = document.createElement('option');
+    o0.value = ''; o0.textContent = '-- 都道府県を選択してください --';
+    sel.appendChild(o0);
+    Object.keys(DATA).forEach(function(p) {
+      var o = document.createElement('option');
+      o.value = p; o.textContent = p;
+      sel.appendChild(o);
+    });
+    sel.onchange = (function(t){ return function() { if (this.value) loadPref(t, this.value); }; })(tab);
+  });
+})();
+
+// ── カテゴリトグル（タブ別）
+function toggleCat(tab, key) {
+  var cats = state[tab].cats;
+  var allOn = Object.values(cats).every(function(v){return v;});
+  if (allOn) {
+    Object.keys(cats).forEach(function(k){ cats[k] = false; });
+    cats[key] = true;
+  } else if (cats[key] && Object.values(cats).filter(Boolean).length === 1) {
+    Object.keys(cats).forEach(function(k){ cats[k] = true; });
+  } else {
+    cats[key] = !cats[key];
+  }
+  updateCatButtons(tab);
+  renderBars(tab);
+}
+
+function updateCatButtons(tab) {
+  var cats = state[tab].cats;
+  document.querySelectorAll('[data-tab="' + tab + '"].cat-btn').forEach(function(btn) {
+    btn.classList.toggle('off', !cats[btn.dataset.cat]);
+  });
+}
+
+// ── ソート（タブ別）
+function setSort(tab, key) {
+  state[tab].sort = key;
+  document.querySelectorAll('[data-tab-sort="' + tab + '"].sort-btn').forEach(function(b) {
+    b.classList.toggle('on', b.dataset.sort === key);
+  });
+  renderBars(tab);
+}
+
+// ── データ読み込み
+function loadPref(tab, pref) {
+  state[tab].pref = pref;
+  state[tab].data = DATA[pref].map(function(r) {
+    return { name:r[0], det:r[1], ren:r[2], cnd:r[3], oth:r[4],
+             total: r[1]+r[2]+r[3]+r[4] };
+  });
+  renderAll(tab, pref);
+}
+
+function fmt(n) { return n.toLocaleString('ja-JP'); }
+function pct(n, t) { return t > 0 ? Math.round(n / t * 100) : 0; }
+
+// ── 全体描画
+function renderAll(tab, pref) {
+  var data = state[tab].data;
+  var total  = data.reduce(function(s,c){return s+c.total;},0);
+  var sumDet = data.reduce(function(s,c){return s+c.det;},0);
+  var sumApt = data.reduce(function(s,c){return s+c.ren+c.cnd;},0);
+  var cnt    = data.length;
+
+  // タブごとにサマリーカードの強調を変える
+  var isApt = tab === 'apt';
+  var s1color = isApt ? 'var(--c-ren)' : 'var(--c-det)';
+  var s1label = isApt ? '共同住宅（都道府県平均）' : '一戸建て（都道府県平均）';
+  var s1val   = isApt ? pct(sumApt,total) : pct(sumDet,total);
+  var s1sub   = isApt ? fmt(sumApt) + ' 戸' : fmt(sumDet) + ' 戸';
+  var s2color = isApt ? 'var(--c-det)' : 'var(--c-ren)';
+  var s2label = isApt ? '一戸建て（都道府県平均）' : '共同住宅（都道府県平均）';
+  var s2val   = isApt ? pct(sumDet,total) : pct(sumApt,total);
+  var s2sub   = isApt ? fmt(sumDet) + ' 戸' : fmt(sumApt) + ' 戸';
+
+  // デフォルトソート：戸建てタブは一戸建て率↓、アパートタブは賃貸率↓
+  var defaultSort = isApt ? 'ren' : 'det';
+
+  var viewId   = isApt ? 'viewApt'   : 'viewDet';
+  var barTblId = isApt ? 'barTblApt' : 'barTblDet';
+
+  var html = ''
+    + '<div class="summary-area">'
+    + sumBox('対象市区町村数', cnt + ' 市区町村', '', '#003f8a')
+    + sumBox('総住宅数', fmt(total) + ' 戸', '令和5年 確報集計', '#1a1f2b')
+    + sumBox(s1label, s1val + ' %', s1sub, s1color)
+    + sumBox(s2label, s2val + ' %', s2sub, s2color)
+    + '</div>'
+    + '<div class="table-panel">'
+    + '<div class="table-panel-header">'
+    + '<span class="table-panel-title">■ ' + pref + ' 市区町村別 住宅タイプ構成</span>'
+    + '<div class="sort-area">'
+    + '<span class="sort-label">並び替え：</span>'
+    + sortBtn(tab, 'det', '一戸建て率↓')
+    + sortBtn(tab, 'ren', '共同住宅率↓')
+    + sortBtn(tab, 'total', '世帯数↓')
+    + sortBtn(tab, 'name', '名前順')
+    + '</div>'
+    + '</div>'
+    + '<div class="bar-table" id="' + barTblId + '"></div>'
+    + '</div>'
+    + '<div class="data-source">'
+    + '<strong>出典：</strong>総務省統計局「令和5年住宅・土地統計調査 住宅及び世帯に関する基本集計（確報集計）」（2024年9月25日公表）<br>'
+    + '対象：市区及び人口1万5千人以上の町村 ／ 調査基準日：令和5年（2023年）10月1日<br>'
+    + '<a href="https://www.e-stat.go.jp/stat-search/files?tstat=000001207800" target="_blank" rel="noopener">'
+    + '政府統計の総合窓口（e-Stat）：令和5年住宅・土地統計調査 統計表一覧</a>'
+    + '</div>';
+
+  document.getElementById(viewId).innerHTML = html;
+  renderBars(tab);
+}
+
+function sumBox(label, val, sub, color) {
+  return '<div class="sum-box">'
+    + '<div class="sum-box-label">' + label + '</div>'
+    + '<div class="sum-box-val" style="color:' + color + '">' + val + '</div>'
+    + (sub ? '<div style="font-size:11px;color:var(--text3);margin-top:2px">' + sub + '</div>' : '')
+    + '</div>';
+}
+
+function sortBtn(tab, key, label) {
+  var s = state[tab].sort;
+  return '<button class="sort-btn' + (s===key?' on':'')
+    + '" data-tab-sort="' + tab + '" data-sort="' + key
+    + '" onclick="setSort(\'' + tab + '\',\'' + key + '\')">' + label + '</button>';
+}
+
+// ── バー描画
+function renderBars(tab) {
+  var st = state[tab];
+  var isApt = tab === 'apt';
+  var barTblId = isApt ? 'barTblApt' : 'barTblDet';
+  var cats = st.cats;
+
+  var sorted = st.data.slice().sort(function(a, b) {
+    if (st.sort==='det')   return b.det/b.total - a.det/a.total;
+    if (st.sort==='ren')   return (b.ren+b.cnd)/b.total - (a.ren+a.cnd)/a.total;
+    if (st.sort==='total') return b.total - a.total;
+    return a.name.localeCompare(b.name, 'ja');
+  });
+
+  var maxTotal = Math.max.apply(null, sorted.map(function(c){return c.total;}));
+
+  var rows = sorted.map(function(c) {
+    var T = c.total;
+    var bw = T / maxTotal * 100;
+
+    var segs = CATS.map(function(cat) {
+      var v = c[cat.key];
+      var p = T > 0 ? v / T * 100 : 0;
+      return '<div class="bar-seg" style="width:' + (cats[cat.key] ? p : 0) + '%;background:'
+        + cat.color + ';opacity:' + (cats[cat.key] ? 1 : 0) + '"></div>';
+    }).join('');
+
+    var nums = CATS.map(function(cat) {
+      var v = c[cat.key];
+      var p = pct(v, T);
+      var dim = cats[cat.key] ? '' : 'opacity:.35;';
+      return '<div class="bar-num-cell" style="' + dim + '">'
+        + '<span class="bar-num-swatch" style="background:' + cat.color + '"></span>'
+        + '<span class="bar-num-val" style="color:' + cat.color + '">' + fmt(v) + '</span>'
+        + '<span class="bar-num-pct">戸 / ' + p + '%</span>'
+        + '</div>';
+    }).join('');
+
+    return '<div class="bar-row"'
+      + ' onclick="openMap(\'' + c.name.replace(/'/g, "\\'") + '\','
+        + c.det + ',' + c.ren + ',' + c.cnd + ',' + c.oth + ',' + T + ')"'
+      + ' onmouseenter="showTip(event,' + JSON.stringify(c.name)
+        + ',' + c.det + ',' + c.ren + ',' + c.cnd + ',' + c.oth + ',' + T
+        + ',\'' + tab + '\')"'
+      + ' onmousemove="moveTip(event)" onmouseleave="hideTip()">'
+      + '<div class="bar-city" title="' + c.name + '">' + c.name + '</div>'
+      + '<div class="bar-track">'
+      + '<div style="width:' + bw + '%;display:flex;height:100%">' + segs + '</div>'
+      + '</div>'
+      + '<div class="bar-nums">' + nums + '</div>'
+      + '</div>';
+  }).join('');
+
+  var tbl = document.getElementById(barTblId);
+  if (tbl) tbl.innerHTML = rows;
+}
+
+// ── 地図表示（Leaflet + Nominatim境界ポリゴン）
+var leafletMap = null;
+var boundaryLayer = null;
+
+function openMap(cityName, det, ren, cnd, oth, total) {
+  hideTip();
+  document.getElementById('mapTitle').textContent = cityName;
+  document.getElementById('mapGoogleLink').href =
+    'https://www.google.com/maps/search/' + encodeURIComponent(cityName + ' 日本');
+
+  // 詳細データパネル
+  var rows = [
+    { key:'det', label:'一戸建て',        color:'var(--c-det)', val: det },
+    { key:'ren', label:'共同住宅（賃貸）', color:'var(--c-ren)', val: ren },
+    { key:'cnd', label:'共同住宅（持家）', color:'var(--c-cnd)', val: cnd },
+    { key:'oth', label:'長屋・その他',    color:'var(--c-oth)', val: oth },
+  ];
+  document.getElementById('mapDetailRows').innerHTML = rows.map(function(r) {
+    var p = total > 0 ? Math.round(r.val / total * 100) : 0;
+    return '<div class="map-detail-row">'
+      + '<span class="map-detail-swatch" style="background:' + r.color + '"></span>'
+      + '<span class="map-detail-label">' + r.label + '</span>'
+      + '<div class="map-detail-nums">'
+      + '<span class="map-detail-val" style="color:' + r.color + '">' + fmt(r.val) + ' 戸</span>'
+      + '<span class="map-detail-pct">' + p + '%</span>'
+      + '</div></div>';
+  }).join('');
+  document.getElementById('mapDetailTotal').innerHTML =
+    '<span>総住宅数</span><strong>' + fmt(total) + ' 戸</strong>';
+
+  document.getElementById('mapOverlay').classList.add('open');
+
+  // Leaflet初期化（初回のみ）
+  var wrap = document.getElementById('mapLeafletWrap');
+  wrap.innerHTML = '<div class="map-loading"><div class="map-loading-spinner"></div>地図を読み込み中…</div>'
+    + '<div id="leafletMap"></div>';
+
+  if (!window.L) {
+    // Leaflet未ロードなら動的に読み込む
+    var css = document.createElement('link');
+    css.rel = 'stylesheet';
+    css.href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
+    document.head.appendChild(css);
+    var js = document.createElement('script');
+    js.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
+    js.onload = function() { initLeafletMap(cityName); };
+    document.head.appendChild(js);
+  } else {
+    initLeafletMap(cityName);
+  }
+}
+
+function initLeafletMap(cityName) {
+  // 既存マップを破棄
+  if (leafletMap) { leafletMap.remove(); leafletMap = null; }
+  boundaryLayer = null;
+
+  leafletMap = L.map('leafletMap', { zoomControl: true });
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    maxZoom: 18
+  }).addTo(leafletMap);
+
+  // Nominatim で境界ポリゴンを取得
+  var query = cityName + ' 日本';
+  var url = 'https://nominatim.openstreetmap.org/search?q='
+    + encodeURIComponent(query)
+    + '&format=json&polygon_geojson=1&limit=1&addressdetails=1';
+
+  fetch(url, { headers: { 'Accept-Language': 'ja' } })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var loading = document.querySelector('.map-loading');
+      if (loading) loading.style.display = 'none';
+
+      if (!data || data.length === 0 || !leafletMap) return;
+
+      var item = data[0];
+      var lat = parseFloat(item.lat);
+      var lon = parseFloat(item.lon);
+
+      // ポリゴンがあれば境界を描画
+      if (item.geojson && (item.geojson.type === 'Polygon' || item.geojson.type === 'MultiPolygon')) {
+        boundaryLayer = L.geoJSON(item.geojson, {
+          style: {
+            color: '#003f8a',
+            weight: 3,
+            opacity: 1,
+            fillColor: '#3b7fff',
+            fillOpacity: 0.18,
+          }
+        }).addTo(leafletMap);
+        leafletMap.fitBounds(boundaryLayer.getBounds(), { padding: [24, 24] });
+      } else {
+        // ポリゴンなし → 中心点にマーカー
+        leafletMap.setView([lat, lon], 13);
+        L.marker([lat, lon])
+          .addTo(leafletMap)
+          .bindPopup(cityName)
+          .openPopup();
+      }
+    })
+    .catch(function() {
+      var loading = document.querySelector('.map-loading');
+      if (loading) loading.textContent = '地図の読み込みに失敗しました';
+    });
+}
+
+function closeMapBtn() {
+  document.getElementById('mapOverlay').classList.remove('open');
+  if (leafletMap) { leafletMap.remove(); leafletMap = null; }
+  document.getElementById('mapLeafletWrap').innerHTML = '';
+}
+function closeMap(e) {
+  if (e.target === document.getElementById('mapOverlay')) closeMapBtn();
+}
+// ESCキーで閉じる
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeMapBtn();
+});
+function showTip(e, name, det, ren, cnd, oth, total, tab) {
+  var cats = state[tab].cats;
+  document.getElementById('tc').textContent = name;
+  var rows = [
+    ['det', '一戸建て', det],
+    ['ren', '共同住宅（賃貸）', ren],
+    ['cnd', '共同住宅（持家）', cnd],
+    ['oth', '長屋・その他', oth],
+  ];
+  document.getElementById('tr').innerHTML = rows.map(function(r) {
+    var cat = CATS.filter(function(c){return c.key===r[0];})[0];
+    var dim = cats[r[0]] ? '' : 'opacity:.4;';
+    return '<div class="tip-row" style="' + dim + '">'
+      + '<div class="tip-swatch" style="background:' + cat.color + '"></div>'
+      + '<span class="tip-label">' + r[1] + '</span>'
+      + '<span class="tip-val">' + fmt(r[2]) + ' 戸</span>'
+      + '<span class="tip-pct">' + pct(r[2], total) + '%</span>'
+      + '</div>';
+  }).join('')
+  + '<div class="tip-total"><span>合計</span><span><strong>' + fmt(total) + '</strong> 戸</span></div>';
+  document.getElementById('tip').style.display = 'block';
+  moveTip(e);
+}
+function moveTip(e) {
+  var t = document.getElementById('tip');
+  var x = e.clientX + 16, y = e.clientY + 16;
+  if (x + t.offsetWidth  > window.innerWidth)  x = e.clientX - t.offsetWidth  - 10;
+  if (y + t.offsetHeight > window.innerHeight) y = e.clientY - t.offsetHeight - 10;
+  t.style.left = x + 'px';
+  t.style.top  = y + 'px';
+}
+function hideTip() { document.getElementById('tip').style.display = 'none'; }
+</script>
+</body>
+</html>
